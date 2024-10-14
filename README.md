@@ -37,6 +37,18 @@ unaccounted for in the code base (as yet! Future improvements). Those are things
 * Some lab courses with very strict student:TA ratios (NE cleanroom courses, for example)
 * One-off, one-time alterations like new course development.
 
+## Usage
+The program is a command-line tool. You can run it with `cargo run inputfile.csv` 
+where `inputfile.csv` is a CSV file with the course codes and enrollments.
+
+The input file is expected to have the format: 
+`Course,Instructor,Enrollment,Lab,Unit Weight`
+
+The instructor column is not currently used for anything and doesn't appear in the
+output. It's just in there because it appears in the example docs I got from the
+department. I did need to usually manually add the lab column but that's easy to
+check in the calendar or schedule of classes.
+
 ## Making Changes
 
 Hello there, future TA coordinator. Or maybe I should say, current one,
@@ -59,6 +71,26 @@ defined there.
 (Yes, I could have put these things into a configuration text
 file, but that would have been less concise and harder to validate because this 
 skips all the parsing and interpreting needed.)
+
+### Following Along
+Here's a sample output with made up numbers for a lab course with 1000(!) students.
+```
+Course ECE459 is considered type UNDERGRAD (unit weight 1.0; lab: yes)
+Adding 330.00 hours for Midterm Marking (Calculation Rule: PER_STUDENT)
+Adding 670.00 hours for Final Marking (Calculation Rule: PER_STUDENT)
+Adding 12.00 hours for Tutorials (Calculation Rule: PER_TERM)
+Adding 12.00 hours for Tutorial Prep (Calculation Rule: PER_TERM)
+Adding 12.00 hours for Office Hours (Calculation Rule: PER_TERM)
+Adding 375.00 hours for Lab Delivery (Calculation Rule: PER_LAB)
+Adding 375.00 hours for Lab Prep (Calculation Rule: PER_LAB)
+Adding 1100.00 hours for Lab Marking (Calculation Rule: PER_STUDENT)
+Adding 5.00 hours for Exam Proctoring (Calculation Rule: PER_TERM)
+Adding 0.00 hours for Extra TA Hours (Calculation Rule: PER_TERM)
+Total TA hours for ECE459 is calculated at 2891.
+This results in a TA allocation of 22.2.
+Found special case for course ECE459 of type MAX_ALLOC. Reason: Project Course
+Overriding original TA allocation of 22.2 with 6.0
+```
 
 ## Future Ideas
 In no particular order:
