@@ -60,7 +60,24 @@ defined there.
 file, but that would have been less concise and harder to validate because this 
 skips all the parsing and interpreting needed.)
 
+## Future Ideas
+In no particular order:
+
+* Held-with course support, which is actually two separate cases. There are some
+undergrad courses that go under different course codes but should be treated as
+one, such as the Software Testing course. Then there are courses that have both 
+an undergraduate and graduate section and should get TA support for the combined
+enrollment -- but instead of just adding the two together as we might for two
+undergrad courses, calculate the numbers for UG and G separately and combine them.
+
 ## Version History
+
+### 0.9.0
+This adds the `SpecialCases` functionality, allowing specific rules for courses
+that have unusual allocation needs. The two immediate examples I can think of
+are the cleanroom courses that require a minimum number of TAs because of the
+logistics of the course and the capstone courses which aren't normally assigned
+any TA allocation.
 
 ### 0.8.0
 Hello World -- this is my first attempt at this. The actual numbers

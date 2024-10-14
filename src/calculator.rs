@@ -3,6 +3,8 @@ use crate::configuration::{
     MIN_ENROLLMENT_FOR_TA_ALLOC, MIN_TA_THRESHOLD, MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT,
     UNDERGRADUATE_COURSE,
 };
+use crate::specialcases::SPECIAL_CASES;
+use crate::types;
 use crate::types::AllocationType::{LAB, NON_LAB};
 use crate::types::{CalculationRule, CourseType};
 
@@ -100,9 +102,36 @@ fn determine_course_type(course_name: &str) -> CourseType {
     }
 }
 
+pub fn check_for_special_case(course_name: &String, original_ta_alloc: f32) -> f32 {
+    let course_name_no_space = course_name.replace(" ", "");
+    let or = SPECIAL_CASES
+        .iter()
+        .find(|o| o.course == course_name_no_space);
+    if or.is_none() {
+        return original_ta_alloc;
+    }
+    let or = or.unwrap();
+    println!(
+        "Found special case for course {} of type {:?}. Reason: {}",
+        course_name, or.allocation_rule, or.reason
+    );
+    let new_alloc = match or.allocation_rule {
+        types::AllocationRule::NO_TA_ALLOC => 0.0,
+        types::AllocationRule::MIN_ALLOC => original_ta_alloc.max(or.allocation_amount),
+        types::AllocationRule::MAX_ALLOC => original_ta_alloc.min(or.allocation_amount),
+    };
+    if new_alloc != original_ta_alloc {
+        println!(
+            "Overriding original TA allocation of {:.1} with {:.1}",
+            original_ta_alloc, new_alloc
+        );
+    }
+    new_alloc
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::calculator::{calculate_ta_hours, determine_course_type};
+    use crate::calculator::{calculate_ta_hours, check_for_special_case, determine_course_type};
     use crate::types::CourseType::{FIRST_YEAR, GRAD, UNDERGRAD};
 
     #[test]
@@ -210,5 +239,45 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&course_name, true, 15, 1.5);
 
         assert_eq!(calculated_ta_fraction, 2.1);
+    }
+
+    #[test]
+    fn special_case_no_ta_alloc() {
+        let course_name = String::from("ECE 498A");
+
+        let calculated_ta_fraction = calculate_ta_hours(&course_name, false, 200, 1.0);
+        let calculated_ta_fraction = check_for_special_case(&course_name, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction, 0.0);
+    }
+
+    #[test]
+    fn special_case_min_alloc() {
+        let course_name = String::from("NE 340");
+
+        let calculated_ta_fraction = calculate_ta_hours(&course_name, true, 50, 1.0);
+        let calculated_ta_fraction = check_for_special_case(&course_name, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction, 5.0);
+    }
+
+    #[test]
+    fn special_case_max_alloc() {
+        let course_name = String::from("ECE459");
+
+        let calculated_ta_fraction = calculate_ta_hours(&course_name, true, 1000, 1.0);
+        let calculated_ta_fraction = check_for_special_case(&course_name, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction, 6.0);
+    }
+
+    #[test]
+    fn special_case_not_found() {
+        let course_name = String::from("ECE 150");
+
+        let calculated_ta_fraction = calculate_ta_hours(&course_name, false, 200, 1.0);
+        let calculated_ta_fraction = check_for_special_case(&course_name, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction, 4.4);
     }
 }
