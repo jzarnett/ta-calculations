@@ -9,7 +9,7 @@ pub enum CalculationRule {
 pub enum AllocationType {
     LAB,
     NON_LAB,
-    ALWAYS,
+    LECTURE,
 }
 
 pub struct TAHourAllocation {

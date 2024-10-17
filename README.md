@@ -104,6 +104,10 @@ undergrad courses, calculate the numbers for UG and G separately and combine the
 
 ## Version History
 
+### 0.10.0
+Some courses are lab only, so let's account for that in the calculations.
+I also added some more special cases that I learned about.
+
 ### 0.9.0
 This adds the `SpecialCases` functionality, allowing specific rules for courses
 that have unusual allocation needs. The two immediate examples I can think of

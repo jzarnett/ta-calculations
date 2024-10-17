@@ -3,7 +3,7 @@ use crate::configuration::{
     MIN_ENROLLMENT_FOR_TA_ALLOC, MIN_TA_THRESHOLD, MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT,
     UNDERGRADUATE_COURSE,
 };
-use crate::specialcases::SPECIAL_CASES;
+use crate::specialcases::{LAB_ONLY_COURSES, SPECIAL_CASES};
 use crate::types;
 use crate::types::AllocationType::{LAB, NON_LAB};
 use crate::types::{CalculationRule, CourseType};
@@ -21,6 +21,7 @@ pub fn calculate_ta_hours(
         );
         return 0.0;
     }
+    let course_is_lab_only = check_if_lab_only(course_name);
 
     let enrollment = enrollment as f32; // Manual typecast because Rust insists
     let course_type = determine_course_type(course_name);
@@ -45,6 +46,9 @@ pub fn calculate_ta_hours(
             continue;
         }
         if !course_has_lab && allocation.alloc_type == LAB {
+            continue;
+        }
+        if course_is_lab_only && allocation.alloc_type != LAB {
             continue;
         }
 
@@ -104,21 +108,21 @@ fn determine_course_type(course_name: &str) -> CourseType {
 
 pub fn check_for_special_case(course_name: &String, original_ta_alloc: f32) -> f32 {
     let course_name_no_space = course_name.replace(" ", "");
-    let or = SPECIAL_CASES
+    let sc = SPECIAL_CASES
         .iter()
         .find(|o| o.course == course_name_no_space);
-    if or.is_none() {
+    if sc.is_none() {
         return original_ta_alloc;
     }
-    let or = or.unwrap();
+    let sc = sc.unwrap();
     println!(
         "Found special case for course {} of type {:?}. Reason: {}",
-        course_name, or.allocation_rule, or.reason
+        course_name, sc.allocation_rule, sc.reason
     );
-    let new_alloc = match or.allocation_rule {
+    let new_alloc = match sc.allocation_rule {
         types::AllocationRule::NO_TA_ALLOC => 0.0,
-        types::AllocationRule::MIN_ALLOC => original_ta_alloc.max(or.allocation_amount),
-        types::AllocationRule::MAX_ALLOC => original_ta_alloc.min(or.allocation_amount),
+        types::AllocationRule::MIN_ALLOC => original_ta_alloc.max(sc.allocation_amount),
+        types::AllocationRule::MAX_ALLOC => original_ta_alloc.min(sc.allocation_amount),
     };
     if new_alloc != original_ta_alloc {
         println!(
@@ -127,6 +131,11 @@ pub fn check_for_special_case(course_name: &String, original_ta_alloc: f32) -> f
         );
     }
     new_alloc
+}
+
+pub fn check_if_lab_only(course_name: &str) -> bool {
+    let course_name_no_space = course_name.replace(" ", "");
+    LAB_ONLY_COURSES.iter().any(|o| *o == course_name_no_space)
 }
 
 #[cfg(test)]

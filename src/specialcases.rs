@@ -31,15 +31,36 @@ pub const SPECIAL_CASES: &[SpecialCase] = &[
         allocation_rule: AllocationRule::MAX_ALLOC,
         allocation_amount: 6.0,
     },
+    SpecialCase {
+        course: "NE455B",
+        reason: "Cleanroom Lab Course",
+        allocation_rule: AllocationRule::MIN_ALLOC,
+        allocation_amount: 2.0,
+    },
+    SpecialCase {
+        course: "NE409",
+        reason: "Half-Credit No TA Course",
+        allocation_rule: AllocationRule::NO_TA_ALLOC,
+        allocation_amount: 0.0,
+    },
 ];
 
+pub const LAB_ONLY_COURSES: &[&str] = &["NE340L", "NE455A", "ECE198", "ECE298"];
+
 mod tests {
-    use crate::specialcases::SPECIAL_CASES;
+    use crate::specialcases::{LAB_ONLY_COURSES, SPECIAL_CASES};
 
     #[test]
     fn no_spaces_in_special_case_course_names() {
         for sc in SPECIAL_CASES {
             assert!(!sc.course.contains(" "));
+        }
+    }
+
+    #[test]
+    fn no_spaces_in_lab_only_course_names() {
+        for l in LAB_ONLY_COURSES {
+            assert!(!l.contains(" "));
         }
     }
 }
