@@ -22,8 +22,7 @@ fn main() {
 fn calculate_ta_hours_for_courses(courses: Vec<Course>) -> Vec<(Course, f32)> {
     let mut result: Vec<(Course, f32)> = Vec::new();
     for c in courses {
-        let ta_allocation =
-            calculator::calculate_ta_hours(&c.course_name, c.has_lab, c.enrollment, c.unit_weight);
+        let ta_allocation = calculator::calculate_ta_hours(&c);
         let ta_allocation = check_for_special_case(&c.course_name, ta_allocation);
         result.push((c, ta_allocation));
     }
@@ -49,7 +48,7 @@ fn read_input_file(path: &String) -> Vec<Course> {
         let course = Course {
             course_name: record.get(0).unwrap().trim().to_string(),
             enrollment: record.get(2).unwrap().trim().parse().unwrap(),
-            has_lab: record.get(3).unwrap().trim() == "y",
+            lab_sections: record.get(3).unwrap().trim().parse().unwrap(),
             unit_weight: record.get(4).unwrap().trim().parse().unwrap(),
         };
         courses.push(course);
@@ -70,7 +69,7 @@ mod tests {
         assert_eq!(courses.len(), 1);
         assert_eq!(courses.first().unwrap().course_name, "ECE150");
         assert_eq!(courses.first().unwrap().enrollment, 450);
-        assert_eq!(courses.first().unwrap().has_lab, true);
+        assert_eq!(courses.first().unwrap().lab_sections, 3);
     }
 
     #[test]
@@ -81,10 +80,10 @@ mod tests {
         assert_eq!(courses.len(), 2);
         assert_eq!(courses.first().unwrap().course_name, "ECE150");
         assert_eq!(courses.first().unwrap().enrollment, 450);
-        assert_eq!(courses.first().unwrap().has_lab, true);
+        assert_eq!(courses.first().unwrap().lab_sections, 3);
         assert_eq!(courses.get(1).unwrap().course_name, "ECE 192");
         assert_eq!(courses.get(1).unwrap().enrollment, 300);
-        assert_eq!(courses.get(1).unwrap().has_lab, false);
+        assert_eq!(courses.get(1).unwrap().lab_sections, 0);
     }
 
     #[test]
@@ -93,16 +92,16 @@ mod tests {
         let course = crate::types::Course {
             course_name,
             enrollment: 450,
-            has_lab: true,
+            lab_sections: 1,
             unit_weight: 1.0,
         };
         let outcome = calculate_ta_hours_for_courses(vec![course]);
 
         assert_eq!(outcome.len(), 1);
-        assert_eq!(outcome.first().unwrap().1, 11.2);
+        assert_eq!(outcome.first().unwrap().1, 10.6);
         assert_eq!(outcome.first().unwrap().0.course_name, "ECE150");
         assert_eq!(outcome.first().unwrap().0.enrollment, 450);
-        assert_eq!(outcome.first().unwrap().0.has_lab, true);
+        assert_eq!(outcome.first().unwrap().0.lab_sections, 1);
         assert_eq!(outcome.first().unwrap().0.unit_weight, 1.0);
     }
 }

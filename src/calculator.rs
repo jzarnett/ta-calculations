@@ -1,51 +1,58 @@
 use crate::configuration::{
-    FIRST_YEAR_EXTRA_TA_HOURS, FULL_TA_HOURS, GRADUATE_COURSE, LAB_RATIO_DENOMINATOR,
-    MIN_ENROLLMENT_FOR_TA_ALLOC, MIN_TA_THRESHOLD, MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT,
-    UNDERGRADUATE_COURSE,
+    FIRST_YEAR_EXTRA_TA_HOURS, FULL_TA_HOURS, GRADUATE_COURSE, LAB_INSTRUCTOR_ADJUSTMENT,
+    LAB_RATIO_DENOMINATOR, MIN_ENROLLMENT_FOR_TA_ALLOC_GRAD, MIN_ENROLLMENT_FOR_TA_ALLOC_UG,
+    MIN_TA_THRESHOLD, MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT, UNDERGRADUATE_COURSE,
 };
 use crate::specialcases::{LAB_ONLY_COURSES, SPECIAL_CASES};
 use crate::types;
 use crate::types::AllocationType::{LAB, NON_LAB};
-use crate::types::{CalculationRule, CourseType};
+use crate::types::CourseType::{FIRST_YEAR, GRAD, UNDERGRAD};
+use crate::types::{CalculationRule, Course, CourseType};
 
-pub fn calculate_ta_hours(
-    course_name: &String,
-    course_has_lab: bool,
-    enrollment: i32,
-    unit_weight: f32,
-) -> f32 {
-    if enrollment < MIN_ENROLLMENT_FOR_TA_ALLOC {
+pub fn calculate_ta_hours(c: &Course) -> f32 {
+    let course_is_lab_only = check_if_lab_only(&c.course_name);
+
+    let course_type = determine_course_type(&c.course_name);
+    let configuration_to_use = match course_type {
+        FIRST_YEAR => UNDERGRADUATE_COURSE,
+        UNDERGRAD => UNDERGRADUATE_COURSE,
+        GRAD => GRADUATE_COURSE,
+    };
+    let min_enrol = match course_type {
+        UNDERGRAD => MIN_ENROLLMENT_FOR_TA_ALLOC_UG,
+        GRAD => MIN_ENROLLMENT_FOR_TA_ALLOC_GRAD,
+        FIRST_YEAR => MIN_ENROLLMENT_FOR_TA_ALLOC_UG,
+    };
+
+    if c.enrollment < min_enrol {
         println!(
             "Course enrollment for {} of {} is below min threshold of {}; allocation will be 0.",
-            course_name, enrollment, MIN_ENROLLMENT_FOR_TA_ALLOC
+            &c.course_name, c.enrollment, min_enrol
         );
         return 0.0;
     }
-    let course_is_lab_only = check_if_lab_only(course_name);
-
-    let enrollment = enrollment as f32; // Manual typecast because Rust insists
-    let course_type = determine_course_type(course_name);
-    let configuration_to_use = match course_type {
-        CourseType::FIRST_YEAR => UNDERGRADUATE_COURSE,
-        CourseType::UNDERGRAD => UNDERGRADUATE_COURSE,
-        CourseType::GRAD => GRADUATE_COURSE,
-    };
 
     println!(
-        "Course {} is considered type {:?} (unit weight {:.1}; lab: {})",
-        course_name,
-        course_type,
-        unit_weight,
-        if course_has_lab { "yes" } else { "no" }
+        "Course {} is considered type {:?} (unit weight {:.1}; lab sections: {})",
+        &c.course_name, course_type, c.unit_weight, c.lab_sections
     );
 
     let mut total_ta_hours: f32 = 0.0;
 
+    let students_per_lab_section = c.enrollment as f32 / (c.lab_sections as f32);
+    let tas_per_lab_section = ((students_per_lab_section / LAB_RATIO_DENOMINATOR).floor()
+        - LAB_INSTRUCTOR_ADJUSTMENT)
+        .max(0.0);
+    println!(
+        "Students per LAB section: {}; TAs per lab section {}",
+        students_per_lab_section, tas_per_lab_section
+    );
+
     for allocation in configuration_to_use {
-        if course_has_lab && allocation.alloc_type == NON_LAB {
+        if c.lab_sections > 0 && allocation.alloc_type == NON_LAB {
             continue;
         }
-        if !course_has_lab && allocation.alloc_type == LAB {
+        if c.lab_sections == 0 && allocation.alloc_type == LAB {
             continue;
         }
         if course_is_lab_only && allocation.alloc_type != LAB {
@@ -54,8 +61,10 @@ pub fn calculate_ta_hours(
 
         let hours_to_add = match allocation.calc_rule {
             CalculationRule::PER_TERM => allocation.hours,
-            CalculationRule::PER_STUDENT => allocation.hours * enrollment,
-            CalculationRule::PER_LAB => allocation.hours * enrollment / LAB_RATIO_DENOMINATOR,
+            CalculationRule::PER_STUDENT => allocation.hours * c.enrollment as f32,
+            CalculationRule::PER_LAB => {
+                allocation.hours * c.lab_sections as f32 * tas_per_lab_section
+            }
         };
         println!(
             "Adding {:.2} hours for {} (Calculation Rule: {:?})",
@@ -64,8 +73,9 @@ pub fn calculate_ta_hours(
         total_ta_hours += hours_to_add;
     }
 
-    if course_type == CourseType::FIRST_YEAR && unit_weight >= MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT {
-        let adjustment_hours = unit_weight * FIRST_YEAR_EXTRA_TA_HOURS;
+    if course_type == CourseType::FIRST_YEAR && c.unit_weight >= MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT
+    {
+        let adjustment_hours = c.unit_weight * FIRST_YEAR_EXTRA_TA_HOURS;
         println!(
             "Adding {} extra hours for 1YE course with unit weight >= {} ",
             adjustment_hours, MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT
@@ -75,7 +85,7 @@ pub fn calculate_ta_hours(
 
     println!(
         "Total TA hours for {} is calculated at {}.",
-        course_name, total_ta_hours
+        c.course_name, total_ta_hours
     );
     let ta_fraction = total_ta_hours / FULL_TA_HOURS;
     let ta_fraction = (ta_fraction * 10.0).round() / 10.0;
@@ -141,6 +151,7 @@ pub fn check_if_lab_only(course_name: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use crate::calculator::{calculate_ta_hours, check_for_special_case, determine_course_type};
+    use crate::types::Course;
     use crate::types::CourseType::{FIRST_YEAR, GRAD, UNDERGRAD};
 
     #[test]
@@ -173,8 +184,14 @@ mod tests {
     #[test]
     fn undergrad_course_with_zero_enrollment_gets_no_alloc() {
         let course_name = String::from("ECE 155");
+        let c = Course {
+            course_name,
+            enrollment: 0,
+            lab_sections: 0,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, true, 0, 1.0);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
 
         assert_eq!(calculated_ta_fraction, 0.0);
     }
@@ -182,35 +199,59 @@ mod tests {
     #[test]
     fn course_with_enrollment_below_threshhold_gets_no_alloc() {
         let course_name = String::from("MTE221");
+        let c = Course {
+            course_name,
+            enrollment: 19,
+            lab_sections: 0,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, true, 14, 1.0);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
 
         assert_eq!(calculated_ta_fraction, 0.0);
     }
 
     #[test]
-    fn course_with_enrollment_of_15_gets_expected_alloc() {
+    fn course_with_enrollment_of_20_gets_expected_alloc() {
         let course_name = String::from("ECE 405C");
+        let c = Course {
+            course_name,
+            enrollment: 20,
+            lab_sections: 0,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, true, 15, 1.0);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 0.6);
+        assert_eq!(calculated_ta_fraction, 0.5);
     }
 
     #[test]
     fn course_with_enrollment_of_148_gets_expected_alloc() {
         let course_name = String::from("ECE 459");
+        let c = Course {
+            course_name,
+            enrollment: 344,
+            lab_sections: 3,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, true, 344, 1.0);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 7.9);
+        assert_eq!(calculated_ta_fraction, 6.8);
     }
 
     #[test]
     fn grad_course_with_enrollment_of_15_gets_expected_alloc() {
         let course_name = String::from("ECE 602");
+        let c = Course {
+            course_name,
+            enrollment: 15,
+            lab_sections: 0,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, false, 15, 1.0);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
 
         assert_eq!(calculated_ta_fraction, 0.4);
     }
@@ -218,8 +259,14 @@ mod tests {
     #[test]
     fn grad_course_with_enrollment_of_29_gets_expected_alloc() {
         let course_name = String::from("ECE 603");
+        let c = Course {
+            course_name,
+            enrollment: 29,
+            lab_sections: 0,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, false, 29, 1.0);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
 
         assert_eq!(calculated_ta_fraction, 0.5);
     }
@@ -227,8 +274,14 @@ mod tests {
     #[test]
     fn grad_course_with_enrollment_of_67_gets_expected_alloc() {
         let course_name = String::from("ECE 657A");
+        let c = Course {
+            course_name,
+            enrollment: 67,
+            lab_sections: 0,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, false, 67, 1.0);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
 
         assert_eq!(calculated_ta_fraction, 1.0);
     }
@@ -236,25 +289,43 @@ mod tests {
     #[test]
     fn first_year_course_gets_no_boost_if_not_at_least_1_unit() {
         let course_name = String::from("ECE 192");
+        let c = Course {
+            course_name,
+            enrollment: 200,
+            lab_sections: 0,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, false, 15, 0.5);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 0.5);
+        assert_eq!(calculated_ta_fraction, 4.1);
     }
     #[test]
     fn first_year_course_gets_larger_boost_if_higher_weight() {
         let course_name = String::from("MTE 120");
+        let c = Course {
+            course_name,
+            enrollment: 100,
+            lab_sections: 4,
+            unit_weight: 1.5,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, true, 15, 1.5);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 2.1);
+        assert_eq!(calculated_ta_fraction, 2.8);
     }
 
     #[test]
     fn special_case_no_ta_alloc() {
         let course_name = String::from("ECE 498A");
+        let c = Course {
+            course_name: course_name.clone(),
+            enrollment: 200,
+            lab_sections: 0,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, false, 200, 1.0);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&course_name, calculated_ta_fraction);
 
         assert_eq!(calculated_ta_fraction, 0.0);
@@ -263,8 +334,14 @@ mod tests {
     #[test]
     fn special_case_min_alloc() {
         let course_name = String::from("NE 340");
+        let c = Course {
+            course_name: course_name.clone(),
+            enrollment: 50,
+            lab_sections: 0,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, true, 50, 1.0);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&course_name, calculated_ta_fraction);
 
         assert_eq!(calculated_ta_fraction, 5.0);
@@ -273,8 +350,14 @@ mod tests {
     #[test]
     fn special_case_max_alloc() {
         let course_name = String::from("ECE459");
+        let c = Course {
+            course_name: course_name.clone(),
+            enrollment: 1000,
+            lab_sections: 10,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, true, 1000, 1.0);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&course_name, calculated_ta_fraction);
 
         assert_eq!(calculated_ta_fraction, 6.0);
@@ -283,10 +366,16 @@ mod tests {
     #[test]
     fn special_case_not_found() {
         let course_name = String::from("ECE 150");
+        let c = Course {
+            course_name: course_name.clone(),
+            enrollment: 200,
+            lab_sections: 6,
+            unit_weight: 1.0,
+        };
 
-        let calculated_ta_fraction = calculate_ta_hours(&course_name, false, 200, 1.0);
+        let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&course_name, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction, 4.4);
+        assert_eq!(calculated_ta_fraction, 4.3);
     }
 }

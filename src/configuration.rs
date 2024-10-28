@@ -3,42 +3,51 @@ use crate::types::{CalculationRule, TAHourAllocation};
 
 pub const FULL_TA_HOURS: f32 = 130.0;
 pub const MIN_TA_THRESHOLD: f32 = 0.3;
-pub const LAB_RATIO_DENOMINATOR: f32 = 40.0;
+pub const LAB_RATIO_DENOMINATOR: f32 = 15.0;
 pub const FIRST_YEAR_EXTRA_TA_HOURS: f32 = 130.0;
+
+pub const LAB_INSTRUCTOR_ADJUSTMENT: f32 = 1.0;
 
 pub const MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT: f32 = 1.0;
 
-pub const MIN_ENROLLMENT_FOR_TA_ALLOC: i32 = 15;
+pub const MIN_ENROLLMENT_FOR_TA_ALLOC_UG: i32 = 20;
+pub const MIN_ENROLLMENT_FOR_TA_ALLOC_GRAD: i32 = 15;
 
 pub const UNDERGRADUATE_COURSE: &[TAHourAllocation] = &[
     TAHourAllocation {
         name: "Midterm Marking",
-        hours: 0.33,
+        hours: 0.2,
         calc_rule: CalculationRule::PER_STUDENT,
         alloc_type: LECTURE,
     },
     TAHourAllocation {
         name: "Final Marking",
-        hours: 0.67,
+        hours: 0.33,
         calc_rule: CalculationRule::PER_STUDENT,
         alloc_type: LECTURE,
     },
     TAHourAllocation {
         name: "Tutorials",
-        hours: 12.0,
+        hours: 11.0,
         calc_rule: CalculationRule::PER_TERM,
         alloc_type: LECTURE,
     },
     TAHourAllocation {
         name: "Tutorial Prep",
-        hours: 12.0,
+        hours: 11.0,
         calc_rule: CalculationRule::PER_TERM,
         alloc_type: LECTURE,
     },
     TAHourAllocation {
         name: "Office Hours",
-        hours: 12.0,
+        hours: 11.0,
         calc_rule: CalculationRule::PER_TERM,
+        alloc_type: LECTURE,
+    },
+    TAHourAllocation {
+        name: "Office Hours Online",
+        hours: 0.17,
+        calc_rule: CalculationRule::PER_STUDENT,
         alloc_type: LECTURE,
     },
     TAHourAllocation {
@@ -49,13 +58,13 @@ pub const UNDERGRADUATE_COURSE: &[TAHourAllocation] = &[
     },
     TAHourAllocation {
         name: "Lab Prep",
-        hours: 15.0,
+        hours: 5.0, // 1/3 * 5 * 3 * # Labs
         calc_rule: CalculationRule::PER_LAB,
         alloc_type: LAB,
     },
     TAHourAllocation {
         name: "Lab Marking",
-        hours: 1.1,
+        hours: 0.54, // # (Students / 2) * 13 * 5
         calc_rule: CalculationRule::PER_STUDENT,
         alloc_type: LAB,
     },
@@ -67,8 +76,8 @@ pub const UNDERGRADUATE_COURSE: &[TAHourAllocation] = &[
     },
     TAHourAllocation {
         name: "Exam Proctoring",
-        hours: 5.0,
-        calc_rule: CalculationRule::PER_TERM,
+        hours: 0.17,
+        calc_rule: CalculationRule::PER_STUDENT,
         alloc_type: LECTURE,
     },
     TAHourAllocation {

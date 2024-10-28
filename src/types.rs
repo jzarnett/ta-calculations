@@ -30,7 +30,7 @@ pub enum CourseType {
 pub struct Course {
     pub course_name: String,
     pub enrollment: i32,
-    pub has_lab: bool,
+    pub lab_sections: i32,
     pub unit_weight: f32,
 }
 

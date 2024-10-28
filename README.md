@@ -104,6 +104,14 @@ undergrad courses, calculate the numbers for UG and G separately and combine the
 
 ## Version History
 
+### 0.11.0
+Thanks to Simarjeet Saini, I now have more up-to-date values to use in 
+the calculator. Those change the results, obviously, but not hte logic.
+The only major change is in how the "per lab" items are calculated, which
+follows an updated formula based on students per lab and adjusting for LI.
+We now expect the lab input to not be yes/no but instead the number of
+lab sections the course has.
+
 ### 0.10.0
 Some courses are lab only, so let's account for that in the calculations.
 I also added some more special cases that I learned about.
