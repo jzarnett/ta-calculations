@@ -28,8 +28,10 @@ pub enum CourseType {
 
 #[derive(Debug)]
 pub struct Course {
-    pub course_name: String,
+    pub name: String,
+    pub instructor: String,
     pub enrollment: i32,
+    pub lec_sections: i32,
     pub lab_sections: i32,
     pub unit_weight: f32,
 }
@@ -46,4 +48,6 @@ pub enum AllocationRule {
     NO_TA_ALLOC,
     MIN_ALLOC,
     MAX_ALLOC,
+    PER_SECTION,
+    FIXED,
 }

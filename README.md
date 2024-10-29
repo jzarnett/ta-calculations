@@ -104,6 +104,12 @@ undergrad courses, calculate the numbers for UG and G separately and combine the
 
 ## Version History
 
+### 1.0.0
+I guess I can call it 1.0 now? The figures have been updated and I have
+some more special case handling for courses with fixed allocation or
+per-section allocation. That's probably enough for a v1 and things like
+held-with can be in a future revision.
+
 ### 0.11.0
 Thanks to Simarjeet Saini, I now have more up-to-date values to use in 
 the calculator. Those change the results, obviously, but not hte logic.

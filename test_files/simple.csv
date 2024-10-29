@@ -1,2 +1,2 @@
-Course,Instructor,Enrollment,Lab,Unit Weight
-ECE150,Instructor Name,450,3,1.0
+Course,Instructor,Enrollment,Course Sections,Lab Sections,Unit Weight
+ECE150,Instructor Name,450,3,3,1.0

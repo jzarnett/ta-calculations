@@ -23,7 +23,7 @@ fn calculate_ta_hours_for_courses(courses: Vec<Course>) -> Vec<(Course, f32)> {
     let mut result: Vec<(Course, f32)> = Vec::new();
     for c in courses {
         let ta_allocation = calculator::calculate_ta_hours(&c);
-        let ta_allocation = check_for_special_case(&c.course_name, ta_allocation);
+        let ta_allocation = check_for_special_case(&c, ta_allocation);
         result.push((c, ta_allocation));
     }
     result
@@ -31,12 +31,17 @@ fn calculate_ta_hours_for_courses(courses: Vec<Course>) -> Vec<(Course, f32)> {
 
 fn write_output(courses: Vec<(Course, f32)>) {
     let mut wtr = csv::Writer::from_path("TA-Allocations.csv").unwrap();
-    wtr.write_record(["Course", "Enrollment", "TA Allocation"])
+    wtr.write_record(["Course", "Instructor", "Enrollment", "TA Allocation"])
         .unwrap();
 
     for c in courses {
-        wtr.write_record(&[c.0.course_name, c.0.enrollment.to_string(), c.1.to_string()])
-            .unwrap();
+        wtr.write_record(&[
+            c.0.name,
+            c.0.instructor,
+            c.0.enrollment.to_string(),
+            c.1.to_string(),
+        ])
+        .unwrap();
     }
 }
 
@@ -46,10 +51,12 @@ fn read_input_file(path: &String) -> Vec<Course> {
     for result in rdr.records() {
         let record = result.unwrap();
         let course = Course {
-            course_name: record.get(0).unwrap().trim().to_string(),
+            name: record.get(0).unwrap().trim().to_string(),
+            instructor: record.get(1).unwrap().trim().to_string(),
             enrollment: record.get(2).unwrap().trim().parse().unwrap(),
-            lab_sections: record.get(3).unwrap().trim().parse().unwrap(),
-            unit_weight: record.get(4).unwrap().trim().parse().unwrap(),
+            lec_sections: record.get(3).unwrap().trim().parse().unwrap(),
+            lab_sections: record.get(4).unwrap().trim().parse().unwrap(),
+            unit_weight: record.get(5).unwrap().trim().parse().unwrap(),
         };
         courses.push(course);
     }
@@ -65,11 +72,15 @@ mod tests {
     fn parse_example_input_file() {
         let input_file = String::from("test_files/simple.csv");
         let courses = read_input_file(&input_file);
+        let c = courses.first().unwrap();
 
         assert_eq!(courses.len(), 1);
-        assert_eq!(courses.first().unwrap().course_name, "ECE150");
-        assert_eq!(courses.first().unwrap().enrollment, 450);
-        assert_eq!(courses.first().unwrap().lab_sections, 3);
+        assert_eq!(c.name, "ECE150");
+        assert_eq!(c.instructor, "Instructor Name");
+        assert_eq!(c.enrollment, 450);
+        assert_eq!(c.lec_sections, 3);
+        assert_eq!(c.lab_sections, 3);
+        assert_eq!(c.unit_weight, 1.0);
     }
 
     #[test]
@@ -78,10 +89,10 @@ mod tests {
         let courses = read_input_file(&input_file);
 
         assert_eq!(courses.len(), 2);
-        assert_eq!(courses.first().unwrap().course_name, "ECE150");
+        assert_eq!(courses.first().unwrap().name, "ECE150");
         assert_eq!(courses.first().unwrap().enrollment, 450);
         assert_eq!(courses.first().unwrap().lab_sections, 3);
-        assert_eq!(courses.get(1).unwrap().course_name, "ECE 192");
+        assert_eq!(courses.get(1).unwrap().name, "ECE 192");
         assert_eq!(courses.get(1).unwrap().enrollment, 300);
         assert_eq!(courses.get(1).unwrap().lab_sections, 0);
     }
@@ -90,8 +101,10 @@ mod tests {
     fn calculate_ta_hours_for_course_with_lab() {
         let course_name = String::from("ECE150");
         let course = crate::types::Course {
-            course_name,
+            name: course_name,
+            instructor: "Bob Example".to_string(),
             enrollment: 450,
+            lec_sections: 2,
             lab_sections: 1,
             unit_weight: 1.0,
         };
@@ -99,7 +112,7 @@ mod tests {
 
         assert_eq!(outcome.len(), 1);
         assert_eq!(outcome.first().unwrap().1, 10.6);
-        assert_eq!(outcome.first().unwrap().0.course_name, "ECE150");
+        assert_eq!(outcome.first().unwrap().0.name, "ECE150");
         assert_eq!(outcome.first().unwrap().0.enrollment, 450);
         assert_eq!(outcome.first().unwrap().0.lab_sections, 1);
         assert_eq!(outcome.first().unwrap().0.unit_weight, 1.0);

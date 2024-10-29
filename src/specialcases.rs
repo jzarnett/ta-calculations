@@ -43,7 +43,27 @@ pub const SPECIAL_CASES: &[SpecialCase] = &[
         allocation_rule: AllocationRule::NO_TA_ALLOC,
         allocation_amount: 0.0,
     },
+    SpecialCase {
+        course: "ECE190",
+        reason: "1 TA per Section 1st Year Course",
+        allocation_rule: AllocationRule::PER_SECTION,
+        allocation_amount: 1.0,
+    },
+    SpecialCase {
+        course: "ECE298",
+        reason: "Hands-On Lab Course",
+        allocation_rule: AllocationRule::PER_SECTION,
+        allocation_amount: 3.0,
+    },
+    SpecialCase {
+        course: "ECE198",
+        reason: "Hands-On Lab Course",
+        allocation_rule: AllocationRule::FIXED,
+        allocation_amount: 8.0,
+    },
 ];
+// 192 (half credit)
+// ECE 260, ME 260, other high power labs, every 15 students = 1 TA
 
 pub const LAB_ONLY_COURSES: &[&str] = &["NE340L", "NE455A", "ECE198", "ECE298"];
 
