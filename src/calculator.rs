@@ -83,7 +83,7 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
     }
 
     println!(
-        "Total TA hours for {} is calculated at {}.",
+        "Total TA hours for {} is calculated at {:.2}.",
         c.name, total_ta_hours
     );
     let ta_fraction = total_ta_hours / FULL_TA_HOURS;
