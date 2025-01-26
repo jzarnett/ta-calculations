@@ -39,10 +39,18 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
 
     let mut total_ta_hours: f32 = 0.0;
 
-    let students_per_lab_section = c.enrollment as f32 / (c.lab_sections as f32);
-    let tas_per_lab_section = ((students_per_lab_section / LAB_RATIO_DENOMINATOR).floor()
-        - LAB_INSTRUCTOR_ADJUSTMENT)
-        .max(0.0);
+    let students_per_lab_section = if c.lab_sections == 0 {
+        0.0
+    } else {
+        c.enrollment as f32 / (c.lab_sections as f32)
+    };
+    let tas_per_lab_section = if c.lab_sections == 0 {
+        0.0
+    } else {
+        ((students_per_lab_section / LAB_RATIO_DENOMINATOR).floor()
+            - LAB_INSTRUCTOR_ADJUSTMENT)
+            .max(0.0)
+    };
     println!(
         "Students per LAB section: {}; TAs per lab section {}",
         students_per_lab_section, tas_per_lab_section
@@ -61,6 +69,7 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
 
         let hours_to_add = match allocation.calc_rule {
             CalculationRule::PER_TERM => allocation.hours,
+            CalculationRule::PER_LEC_SECTION => allocation.hours * c.lec_sections as f32,
             CalculationRule::PER_STUDENT => allocation.hours * c.enrollment as f32,
             CalculationRule::PER_LAB => {
                 allocation.hours * c.lab_sections as f32 * tas_per_lab_section

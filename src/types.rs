@@ -3,6 +3,7 @@ pub enum CalculationRule {
     PER_TERM,
     PER_STUDENT,
     PER_LAB,
+    PER_LEC_SECTION,
 }
 
 #[derive(Eq, PartialEq, Debug)]

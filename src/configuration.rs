@@ -29,7 +29,7 @@ pub const UNDERGRADUATE_COURSE: &[TAHourAllocation] = &[
     TAHourAllocation {
         name: "Tutorials",
         hours: 11.0,
-        calc_rule: CalculationRule::PER_TERM,
+        calc_rule: CalculationRule::PER_LEC_SECTION,
         alloc_type: LECTURE,
     },
     TAHourAllocation {

@@ -104,6 +104,12 @@ undergrad courses, calculate the numbers for UG and G separately and combine the
 
 ## Version History
 
+### 1.1.0
+Two small updates:
+* Don't report infinity students per lab sections in courses that don't have a lab.
+* Tutorials are now "per lecture section", because if a course has two LEC sections,
+it most likely has two TUT sections as well.
+
 ### 1.0.0
 I guess I can call it 1.0 now? The figures have been updated and I have
 some more special case handling for courses with fixed allocation or
