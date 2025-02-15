@@ -4,7 +4,7 @@ use crate::types::{CalculationRule, TAHourAllocation};
 pub const FULL_TA_HOURS: f32 = 130.0;
 pub const MIN_TA_THRESHOLD: f32 = 0.3;
 pub const LAB_RATIO_DENOMINATOR: f32 = 15.0;
-pub const FIRST_YEAR_EXTRA_TA_HOURS: f32 = 130.0;
+pub const FIRST_YEAR_EXTRA_TA_HOURS: f32 = 65.0;
 
 pub const LAB_INSTRUCTOR_ADJUSTMENT: f32 = 1.0;
 
@@ -64,7 +64,7 @@ pub const UNDERGRADUATE_COURSE: &[TAHourAllocation] = &[
     },
     TAHourAllocation {
         name: "Lab Marking",
-        hours: 0.54, // # (Students / 2) * 13 * 5
+        hours: 0.0, // Previously: # (Students / 2) * 13 * 5
         calc_rule: CalculationRule::PER_STUDENT,
         alloc_type: LAB,
     },

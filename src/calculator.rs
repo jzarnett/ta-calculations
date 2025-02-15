@@ -255,7 +255,7 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 6.8);
+        assert_eq!(calculated_ta_fraction, 5.3);
     }
 
     #[test]
@@ -323,7 +323,7 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 4.1);
+        assert_eq!(calculated_ta_fraction, 3.6);
     }
     #[test]
     fn first_year_course_gets_larger_boost_if_higher_weight() {
@@ -339,7 +339,7 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 2.8);
+        assert_eq!(calculated_ta_fraction, 1.7);
     }
 
     #[test]
@@ -362,7 +362,7 @@ mod tests {
 
     #[test]
     fn special_case_min_alloc() {
-        let course_name = String::from("NE 340");
+        let course_name = String::from("NE 340L");
         let c = Course {
             name: course_name.clone(),
             instructor: "Example Instructor".to_string(),
@@ -375,7 +375,7 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction, 5.0);
+        assert_eq!(calculated_ta_fraction, 2.0);
     }
 
     #[test]
@@ -465,6 +465,6 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction, 4.3);
+        assert_eq!(calculated_ta_fraction, 3.0);
     }
 }
