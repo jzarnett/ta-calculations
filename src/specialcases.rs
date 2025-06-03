@@ -67,6 +67,12 @@ pub const SPECIAL_CASES: &[SpecialCase] = &[
         allocation_rule: AllocationRule::MIN_ALLOC,
         allocation_amount: 1.0,
     },
+    SpecialCase {
+        course: "ECE474",
+        reason: "Lab Safety",
+        allocation_rule: AllocationRule::PER_LAB_SECTION,
+        allocation_amount: 0.4,
+    },
 ];
 // 192 (half credit)
 // ECE 260, ME 260, other high power labs, every 15 students = 1 TA

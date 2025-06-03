@@ -50,5 +50,6 @@ pub enum AllocationRule {
     MIN_ALLOC,
     MAX_ALLOC,
     PER_SECTION,
+    PER_LAB_SECTION,
     FIXED,
 }

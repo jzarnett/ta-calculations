@@ -47,7 +47,7 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
     let tas_per_lab_section = if c.lab_sections == 0 {
         0.0
     } else {
-        ((students_per_lab_section / LAB_RATIO_DENOMINATOR).floor() - LAB_INSTRUCTOR_ADJUSTMENT)
+        ((students_per_lab_section / LAB_RATIO_DENOMINATOR).ceil() - LAB_INSTRUCTOR_ADJUSTMENT)
             .max(0.0)
     };
     println!(
@@ -141,6 +141,7 @@ pub fn check_for_special_case(course: &Course, original_ta_alloc: f32) -> f32 {
         AllocationRule::MIN_ALLOC => original_ta_alloc.max(sc.allocation_amount),
         AllocationRule::MAX_ALLOC => original_ta_alloc.min(sc.allocation_amount),
         AllocationRule::PER_SECTION => sc.allocation_amount * course.lec_sections as f32,
+        AllocationRule::PER_LAB_SECTION => sc.allocation_amount * course.lab_sections as f32,
         AllocationRule::FIXED => sc.allocation_amount,
     };
     if new_alloc != original_ta_alloc {

@@ -3,7 +3,7 @@ use crate::types::{CalculationRule, TAHourAllocation};
 
 pub const FULL_TA_HOURS: f32 = 130.0;
 pub const MIN_TA_THRESHOLD: f32 = 0.3;
-pub const LAB_RATIO_DENOMINATOR: f32 = 15.0;
+pub const LAB_RATIO_DENOMINATOR: f32 = 20.0;
 pub const FIRST_YEAR_EXTRA_TA_HOURS: f32 = 65.0;
 
 pub const LAB_INSTRUCTOR_ADJUSTMENT: f32 = 1.0;
