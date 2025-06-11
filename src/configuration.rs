@@ -3,12 +3,12 @@ use crate::types::{CalculationRule, TAHourAllocation};
 
 pub const FULL_TA_HOURS: f32 = 130.0;
 pub const MIN_TA_THRESHOLD: f32 = 0.3;
-pub const LAB_RATIO_DENOMINATOR: f32 = 20.0;
+pub const LAB_RATIO_DENOMINATOR: f32 = 15.0;
 pub const FIRST_YEAR_EXTRA_TA_HOURS: f32 = 65.0;
 
 pub const LAB_INSTRUCTOR_ADJUSTMENT: f32 = 1.0;
 
-pub const MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT: f32 = 1.0;
+pub const MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT: f32 = 0.5;
 
 pub const MIN_ENROLLMENT_FOR_TA_ALLOC_UG: i32 = 20;
 pub const MIN_ENROLLMENT_FOR_TA_ALLOC_GRAD: i32 = 15;

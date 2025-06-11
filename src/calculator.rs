@@ -33,7 +33,7 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
     }
 
     println!(
-        "Course {} is considered type {:?} (unit weight {:.1}; lab sections: {})",
+        "Course {} is considered type {:?} (unit weight {:.2}; lab sections: {})",
         &c.name, course_type, c.unit_weight, c.lab_sections
     );
 
@@ -47,7 +47,7 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
     let tas_per_lab_section = if c.lab_sections == 0 {
         0.0
     } else {
-        ((students_per_lab_section / LAB_RATIO_DENOMINATOR).ceil() - LAB_INSTRUCTOR_ADJUSTMENT)
+        ((students_per_lab_section / LAB_RATIO_DENOMINATOR) - LAB_INSTRUCTOR_ADJUSTMENT)
             .max(0.0)
     };
     println!(
@@ -82,7 +82,7 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
     }
 
     if course_type == FIRST_YEAR && c.unit_weight >= MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT {
-        let adjustment_hours = c.unit_weight * FIRST_YEAR_EXTRA_TA_HOURS;
+        let adjustment_hours = c.unit_weight * 2.0 * FIRST_YEAR_EXTRA_TA_HOURS;
         println!(
             "Adding {} extra hours for 1YE course with unit weight >= {} ",
             adjustment_hours, MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT
@@ -200,7 +200,7 @@ mod tests {
             enrollment: 0,
             lec_sections: 1,
             lab_sections: 0,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -217,7 +217,7 @@ mod tests {
             enrollment: 19,
             lec_sections: 1,
             lab_sections: 0,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -234,7 +234,7 @@ mod tests {
             enrollment: 20,
             lec_sections: 1,
             lab_sections: 0,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -251,7 +251,7 @@ mod tests {
             enrollment: 344,
             lec_sections: 1,
             lab_sections: 3,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -268,7 +268,7 @@ mod tests {
             enrollment: 15,
             lec_sections: 1,
             lab_sections: 0,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -285,7 +285,7 @@ mod tests {
             enrollment: 29,
             lec_sections: 1,
             lab_sections: 0,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -302,7 +302,7 @@ mod tests {
             enrollment: 67,
             lec_sections: 1,
             lab_sections: 0,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -319,7 +319,7 @@ mod tests {
             enrollment: 200,
             lec_sections: 1,
             lab_sections: 0,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -352,7 +352,7 @@ mod tests {
             enrollment: 200,
             lec_sections: 1,
             lab_sections: 0,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -370,7 +370,7 @@ mod tests {
             enrollment: 50,
             lec_sections: 1,
             lab_sections: 0,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -388,7 +388,7 @@ mod tests {
             enrollment: 1000,
             lec_sections: 1,
             lab_sections: 10,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -406,7 +406,7 @@ mod tests {
             enrollment: 5,
             lec_sections: 1,
             lab_sections: 10,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -424,7 +424,7 @@ mod tests {
             enrollment: 900,
             lec_sections: 2,
             lab_sections: 0,
-            unit_weight: 0.5,
+            unit_weight: 0.25,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -442,7 +442,7 @@ mod tests {
             enrollment: 148,
             lec_sections: 3,
             lab_sections: 8,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
@@ -460,7 +460,7 @@ mod tests {
             enrollment: 200,
             lec_sections: 1,
             lab_sections: 6,
-            unit_weight: 1.0,
+            unit_weight: 0.5,
         };
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
