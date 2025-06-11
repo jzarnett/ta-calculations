@@ -47,8 +47,7 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
     let tas_per_lab_section = if c.lab_sections == 0 {
         0.0
     } else {
-        ((students_per_lab_section / LAB_RATIO_DENOMINATOR) - LAB_INSTRUCTOR_ADJUSTMENT)
-            .max(0.0)
+        ((students_per_lab_section / LAB_RATIO_DENOMINATOR) - LAB_INSTRUCTOR_ADJUSTMENT).max(0.0)
     };
     println!(
         "Students per LAB section: {}; TAs per lab section {}",
