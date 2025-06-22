@@ -10,7 +10,6 @@ use crate::types::{AllocationRule, CourseAllocation};
 use crate::types::{CalculationRule, Course, CourseType};
 
 pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
-    let mut non_lab_amount: f32 = 0.0;
     let mut lab_amount: f32 = 0.0;
 
     let course_is_lab_only = check_if_lab_only(&c.name);
@@ -86,8 +85,6 @@ pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
         total_ta_hours += hours_to_add;
         if allocation.alloc_type == LAB {
             lab_amount += hours_to_add;
-        } else {
-            non_lab_amount += hours_to_add;
         }
     }
 
@@ -98,7 +95,6 @@ pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
             adjustment_hours, MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT
         );
         total_ta_hours += adjustment_hours;
-        non_lab_amount += adjustment_hours;
     }
 
     println!(
@@ -107,7 +103,6 @@ pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
     );
     let ta_fraction = apply_rounding(total_ta_hours);
     let lab_amount = apply_rounding(lab_amount);
-    let non_lab_amount = apply_rounding(non_lab_amount);
 
     if ta_fraction < MIN_TA_THRESHOLD {
         println!(
@@ -121,7 +116,9 @@ pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
     } else {
         println!(
             "This results in a TA allocation of {:.1} [Lab: {:.1}, Lecture {:.1}].",
-            ta_fraction, lab_amount, non_lab_amount
+            ta_fraction,
+            lab_amount,
+            ta_fraction - lab_amount
         );
         CourseAllocation {
             total: ta_fraction,
