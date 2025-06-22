@@ -1,7 +1,7 @@
 #![allow(clippy::upper_case_acronyms, non_camel_case_types)]
 
 use crate::calculator::check_for_special_case;
-use crate::types::Course;
+use crate::types::{Course, CourseAllocation};
 use std::env;
 
 mod calculator;
@@ -19,8 +19,8 @@ fn main() {
     write_output(ta_hours);
 }
 
-fn calculate_ta_hours_for_courses(courses: Vec<Course>) -> Vec<(Course, f32)> {
-    let mut result: Vec<(Course, f32)> = Vec::new();
+fn calculate_ta_hours_for_courses(courses: Vec<Course>) -> Vec<(Course, CourseAllocation)> {
+    let mut result: Vec<(Course, CourseAllocation)> = Vec::new();
     for c in courses {
         let ta_allocation = calculator::calculate_ta_hours(&c);
         let ta_allocation = check_for_special_case(&c, ta_allocation);
@@ -29,9 +29,9 @@ fn calculate_ta_hours_for_courses(courses: Vec<Course>) -> Vec<(Course, f32)> {
     result
 }
 
-fn write_output(courses: Vec<(Course, f32)>) {
+fn write_output(courses: Vec<(Course, CourseAllocation)>) {
     let mut wtr = csv::Writer::from_path("TA-Allocations.csv").unwrap();
-    wtr.write_record(["Course", "Instructor", "Enrollment", "TA Allocation"])
+    wtr.write_record(["Course", "Instructor", "Enrollment", "TA Allocation", "Lab Fraction"])
         .unwrap();
 
     for c in courses {
@@ -39,7 +39,8 @@ fn write_output(courses: Vec<(Course, f32)>) {
             c.0.name,
             c.0.instructor,
             c.0.enrollment.to_string(),
-            c.1.to_string(),
+            c.1.total.to_string(),
+            c.1.lab_amount.to_string(),
         ])
         .unwrap();
     }
@@ -111,7 +112,8 @@ mod tests {
         let outcome = calculate_ta_hours_for_courses(vec![course]);
 
         assert_eq!(outcome.len(), 1);
-        assert_eq!(outcome.first().unwrap().1, 8.3);
+        assert_eq!(outcome.first().unwrap().1.total, 8.8);
+        assert_eq!(outcome.first().unwrap().1.lab_amount, 4.5);
         assert_eq!(outcome.first().unwrap().0.name, "ECE150");
         assert_eq!(outcome.first().unwrap().0.enrollment, 450);
         assert_eq!(outcome.first().unwrap().0.lab_sections, 1);

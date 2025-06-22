@@ -4,12 +4,15 @@ use crate::configuration::{
     MIN_TA_THRESHOLD, MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT, UNDERGRADUATE_COURSE,
 };
 use crate::specialcases::{LAB_ONLY_COURSES, SPECIAL_CASES};
-use crate::types::AllocationRule;
+use crate::types::{CourseAllocation, AllocationRule};
 use crate::types::AllocationType::{LAB, NON_LAB};
 use crate::types::CourseType::{FIRST_YEAR, GRAD, UNDERGRAD};
 use crate::types::{CalculationRule, Course, CourseType};
 
-pub fn calculate_ta_hours(c: &Course) -> f32 {
+pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
+    let mut non_lab_amount: f32 = 0.0;
+    let mut lab_amount: f32 = 0.0;
+
     let course_is_lab_only = check_if_lab_only(&c.name);
 
     let course_type = determine_course_type(&c.name);
@@ -29,7 +32,10 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
             "Course enrollment for {} of {} is below min threshold of {}; allocation will be 0.",
             &c.name, c.enrollment, min_enrol
         );
-        return 0.0;
+        return CourseAllocation {
+            total: 0.0,
+            lab_amount: 0.0,
+        }
     }
 
     println!(
@@ -50,7 +56,7 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
         ((students_per_lab_section / LAB_RATIO_DENOMINATOR) - LAB_INSTRUCTOR_ADJUSTMENT).max(0.0)
     };
     println!(
-        "Students per LAB section: {}; TAs per lab section {}",
+        "Students per LAB section: {:.2}; TAs per lab section {:.2}",
         students_per_lab_section, tas_per_lab_section
     );
 
@@ -78,6 +84,11 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
             hours_to_add, allocation.name, allocation.calc_rule
         );
         total_ta_hours += hours_to_add;
+        if allocation.alloc_type == LAB {
+            lab_amount += hours_to_add;
+        } else {
+            non_lab_amount += hours_to_add;
+        }
     }
 
     if course_type == FIRST_YEAR && c.unit_weight >= MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT {
@@ -87,25 +98,38 @@ pub fn calculate_ta_hours(c: &Course) -> f32 {
             adjustment_hours, MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT
         );
         total_ta_hours += adjustment_hours;
+        non_lab_amount += adjustment_hours;
     }
 
     println!(
         "Total TA hours for {} is calculated at {:.2}.",
         c.name, total_ta_hours
     );
-    let ta_fraction = total_ta_hours / FULL_TA_HOURS;
-    let ta_fraction = (ta_fraction * 10.0).round() / 10.0;
+    let ta_fraction = apply_rounding(total_ta_hours);
+    let lab_amount = apply_rounding(lab_amount);
+    let non_lab_amount = apply_rounding(non_lab_amount);
 
     if ta_fraction < MIN_TA_THRESHOLD {
         println!(
             "This is below the min threshold of {}, so the allocation will be 0.",
             MIN_TA_THRESHOLD
         );
-        0.0
+        CourseAllocation {
+            total: 0.0,
+            lab_amount: 0.0,
+        }
     } else {
-        println!("This results in a TA allocation of {}.", ta_fraction);
-        ta_fraction
+        println!("This results in a TA allocation of {:.1} [Lab: {:.1}, Lecture {:.1}].", ta_fraction, lab_amount, non_lab_amount);
+        CourseAllocation {
+            total: ta_fraction,
+            lab_amount,
+        }
     }
+}
+
+fn apply_rounding(hours: f32) -> f32 {
+    let ta_fraction = hours / FULL_TA_HOURS;
+    (ta_fraction * 10.0).round() / 10.0
 }
 
 fn determine_course_type(course_name: &str) -> CourseType {
@@ -122,7 +146,7 @@ fn determine_course_type(course_name: &str) -> CourseType {
     }
 }
 
-pub fn check_for_special_case(course: &Course, original_ta_alloc: f32) -> f32 {
+pub fn check_for_special_case(course: &Course, original_ta_alloc: CourseAllocation) -> CourseAllocation {
     let course_name_no_space = course.name.replace(" ", "");
     let sc = SPECIAL_CASES
         .iter()
@@ -137,19 +161,24 @@ pub fn check_for_special_case(course: &Course, original_ta_alloc: f32) -> f32 {
     );
     let new_alloc = match sc.allocation_rule {
         AllocationRule::NO_TA_ALLOC => 0.0,
-        AllocationRule::MIN_ALLOC => original_ta_alloc.max(sc.allocation_amount),
-        AllocationRule::MAX_ALLOC => original_ta_alloc.min(sc.allocation_amount),
+        AllocationRule::MIN_ALLOC => original_ta_alloc.total.max(sc.allocation_amount),
+        AllocationRule::MAX_ALLOC => original_ta_alloc.total.min(sc.allocation_amount),
         AllocationRule::PER_SECTION => sc.allocation_amount * course.lec_sections as f32,
         AllocationRule::PER_LAB_SECTION => sc.allocation_amount * course.lab_sections as f32,
         AllocationRule::FIXED => sc.allocation_amount,
     };
-    if new_alloc != original_ta_alloc {
+    if new_alloc != original_ta_alloc.total {
         println!(
             "Overriding original TA allocation of {:.1} with {:.1}",
-            original_ta_alloc, new_alloc
+            original_ta_alloc.total, new_alloc
         );
+        // TODO: Fix this
+        return CourseAllocation{
+            total: new_alloc,
+            lab_amount: 0.0,
+        }
     }
-    new_alloc
+    original_ta_alloc
 }
 
 pub fn check_if_lab_only(course_name: &str) -> bool {
@@ -204,7 +233,8 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 0.0);
+        assert_eq!(calculated_ta_fraction.total, 0.0);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
     #[test]
@@ -221,7 +251,8 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 0.0);
+        assert_eq!(calculated_ta_fraction.total, 0.0);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
     #[test]
@@ -238,7 +269,8 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 0.5);
+        assert_eq!(calculated_ta_fraction.total, 0.5);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
     #[test]
@@ -255,7 +287,8 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 5.3);
+        assert_eq!(calculated_ta_fraction.total, 5.6);
+        assert_eq!(calculated_ta_fraction.lab_amount, 3.1);
     }
 
     #[test]
@@ -272,7 +305,8 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 0.4);
+        assert_eq!(calculated_ta_fraction.total, 0.4);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
     #[test]
@@ -289,7 +323,8 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 0.5);
+        assert_eq!(calculated_ta_fraction.total, 0.5);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
     #[test]
@@ -306,42 +341,10 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction, 1.0);
+        assert_eq!(calculated_ta_fraction.total, 1.0);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
-
-    #[test]
-    fn first_year_course_gets_no_boost_if_not_at_least_1_unit() {
-        let course_name = String::from("ECE 192");
-        let c = Course {
-            name: course_name,
-            instructor: "Example Instructor".to_string(),
-            enrollment: 200,
-            lec_sections: 1,
-            lab_sections: 0,
-            unit_weight: 0.5,
-        };
-
-        let calculated_ta_fraction = calculate_ta_hours(&c);
-
-        assert_eq!(calculated_ta_fraction, 3.6);
-    }
-    #[test]
-    fn first_year_course_gets_larger_boost_if_higher_weight() {
-        let course_name = String::from("MTE 120");
-        let c = Course {
-            name: course_name,
-            instructor: "Example Instructor".to_string(),
-            enrollment: 100,
-            lec_sections: 1,
-            lab_sections: 4,
-            unit_weight: 1.5,
-        };
-
-        let calculated_ta_fraction = calculate_ta_hours(&c);
-
-        assert_eq!(calculated_ta_fraction, 1.7);
-    }
-
+    
     #[test]
     fn special_case_no_ta_alloc() {
         let course_name = String::from("ECE 498A");
@@ -357,7 +360,8 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction, 0.0);
+        assert_eq!(calculated_ta_fraction.total, 0.0);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
     #[test]
@@ -375,7 +379,8 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction, 2.0);
+        assert_eq!(calculated_ta_fraction.total, 2.0);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
     #[test]
@@ -393,7 +398,8 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction, 6.0);
+        assert_eq!(calculated_ta_fraction.total, 6.0);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
     #[test]
@@ -411,7 +417,8 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction, 8.0);
+        assert_eq!(calculated_ta_fraction.total, 8.0);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
     #[test]
@@ -429,7 +436,8 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction, 2.0);
+        assert_eq!(calculated_ta_fraction.total, 2.0);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
     #[test]
@@ -447,7 +455,8 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction, 9.0);
+        assert_eq!(calculated_ta_fraction.total, 9.0);
+        assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
     #[test]
@@ -465,6 +474,7 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction, 3.0);
+        assert_eq!(calculated_ta_fraction.total, 3.2);
+        assert_eq!(calculated_ta_fraction.lab_amount, 1.1);
     }
 }

@@ -43,6 +43,11 @@ pub struct SpecialCase {
     pub allocation_rule: AllocationRule,
     pub allocation_amount: f32,
 }
+#[derive(Debug)]
+pub struct CourseAllocation {
+    pub total: f32,
+    pub lab_amount: f32,
+}
 
 #[derive(Eq, PartialEq, Debug)]
 pub enum AllocationRule {
