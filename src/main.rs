@@ -31,8 +31,14 @@ fn calculate_ta_hours_for_courses(courses: Vec<Course>) -> Vec<(Course, CourseAl
 
 fn write_output(courses: Vec<(Course, CourseAllocation)>) {
     let mut wtr = csv::Writer::from_path("TA-Allocations.csv").unwrap();
-    wtr.write_record(["Course", "Instructor", "Enrollment", "TA Allocation", "Lab Fraction"])
-        .unwrap();
+    wtr.write_record([
+        "Course",
+        "Instructor",
+        "Enrollment",
+        "TA Allocation",
+        "Lab Fraction",
+    ])
+    .unwrap();
 
     for c in courses {
         wtr.write_record(&[

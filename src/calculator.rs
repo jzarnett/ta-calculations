@@ -4,9 +4,9 @@ use crate::configuration::{
     MIN_TA_THRESHOLD, MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT, UNDERGRADUATE_COURSE,
 };
 use crate::specialcases::{LAB_ONLY_COURSES, SPECIAL_CASES};
-use crate::types::{CourseAllocation, AllocationRule};
 use crate::types::AllocationType::{LAB, NON_LAB};
 use crate::types::CourseType::{FIRST_YEAR, GRAD, UNDERGRAD};
+use crate::types::{AllocationRule, CourseAllocation};
 use crate::types::{CalculationRule, Course, CourseType};
 
 pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
@@ -35,7 +35,7 @@ pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
         return CourseAllocation {
             total: 0.0,
             lab_amount: 0.0,
-        }
+        };
     }
 
     println!(
@@ -119,7 +119,10 @@ pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
             lab_amount: 0.0,
         }
     } else {
-        println!("This results in a TA allocation of {:.1} [Lab: {:.1}, Lecture {:.1}].", ta_fraction, lab_amount, non_lab_amount);
+        println!(
+            "This results in a TA allocation of {:.1} [Lab: {:.1}, Lecture {:.1}].",
+            ta_fraction, lab_amount, non_lab_amount
+        );
         CourseAllocation {
             total: ta_fraction,
             lab_amount,
@@ -146,7 +149,10 @@ fn determine_course_type(course_name: &str) -> CourseType {
     }
 }
 
-pub fn check_for_special_case(course: &Course, original_ta_alloc: CourseAllocation) -> CourseAllocation {
+pub fn check_for_special_case(
+    course: &Course,
+    original_ta_alloc: CourseAllocation,
+) -> CourseAllocation {
     let course_name_no_space = course.name.replace(" ", "");
     let sc = SPECIAL_CASES
         .iter()
@@ -173,10 +179,10 @@ pub fn check_for_special_case(course: &Course, original_ta_alloc: CourseAllocati
             original_ta_alloc.total, new_alloc
         );
         // TODO: Fix this
-        return CourseAllocation{
+        return CourseAllocation {
             total: new_alloc,
             lab_amount: 0.0,
-        }
+        };
     }
     original_ta_alloc
 }
@@ -344,7 +350,7 @@ mod tests {
         assert_eq!(calculated_ta_fraction.total, 1.0);
         assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
-    
+
     #[test]
     fn special_case_no_ta_alloc() {
         let course_name = String::from("ECE 498A");
