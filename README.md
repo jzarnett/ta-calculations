@@ -104,6 +104,12 @@ undergrad courses, calculate the numbers for UG and G separately and combine the
 
 ## Version History
 
+### 1.1.1
+* Some changes of parameters; removed rounding on lab hours
+* We now report the lab fraction of the TA allocation to give some guidance to course
+ and lab instructors just how much of the allocation should be going towards supporting
+ the labs. This is advisory only, but may help.
+
 ### 1.1.0
 Two small updates:
 * Don't report infinity students per lab sections in courses that don't have a lab.
