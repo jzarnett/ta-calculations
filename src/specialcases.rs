@@ -73,6 +73,18 @@ pub const SPECIAL_CASES: &[SpecialCase] = &[
         allocation_rule: AllocationRule::PER_LAB_SECTION,
         allocation_amount: 0.4,
     },
+    SpecialCase {
+        course: "NE216L",
+        reason: "Nano Lab",
+        allocation_rule: AllocationRule::FIXED,
+        allocation_amount: 1.0,
+    },
+    SpecialCase {
+        course: "NE217L",
+        reason: "Nano Lab -- Combined with 216L",
+        allocation_rule: AllocationRule::FIXED,
+        allocation_amount: 0.0,
+    },
 ];
 // 192 (half credit)
 // ECE 260, ME 260, other high power labs, every 15 students = 1 TA
