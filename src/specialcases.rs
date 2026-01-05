@@ -81,9 +81,9 @@ pub const SPECIAL_CASES: &[SpecialCase] = &[
     },
     SpecialCase {
         course: "NE217L",
-        reason: "Nano Lab -- Combined with 216L",
+        reason: "Nano Lab",
         allocation_rule: AllocationRule::FIXED,
-        allocation_amount: 0.0,
+        allocation_amount: 1.0,
     },
     SpecialCase {
         course: "ECE6607PD",
