@@ -36,6 +36,7 @@ fn write_output(courses: Vec<(Course, CourseAllocation)>) {
         "Instructor",
         "Enrollment",
         "TA Allocation",
+        "Lecture Fraction",
         "Lab Fraction",
     ])
     .unwrap();
@@ -46,6 +47,7 @@ fn write_output(courses: Vec<(Course, CourseAllocation)>) {
             c.0.instructor,
             c.0.enrollment.to_string(),
             c.1.total.to_string(),
+            format!("{:.1}", c.1.total - c.1.lab_amount), // TODO Fix hack
             c.1.lab_amount.to_string(),
         ])
         .unwrap();
