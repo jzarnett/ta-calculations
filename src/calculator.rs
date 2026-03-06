@@ -115,7 +115,7 @@ pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
         }
     } else {
         println!(
-            "This results in a TA allocation of {:.1} [Lab: {:.1}, Lecture {:.1}].",
+            "This results in a TA allocation of {:.2} [Lab: {:.2}, Lecture {:.2}].",
             ta_fraction,
             lab_amount,
             ta_fraction - lab_amount
@@ -129,7 +129,7 @@ pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
 
 fn apply_rounding(hours: f32) -> f32 {
     let ta_fraction = hours / FULL_TA_HOURS;
-    (ta_fraction * 10.0).round() / 10.0
+    (ta_fraction * 4.0).round() / 4.0
 }
 
 fn determine_course_type(course_name: &str) -> CourseType {
@@ -290,8 +290,8 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction.total, 5.6);
-        assert_eq!(calculated_ta_fraction.lab_amount, 3.1);
+        assert_eq!(calculated_ta_fraction.total, 5.5);
+        assert_eq!(calculated_ta_fraction.lab_amount, 3.0);
     }
 
     #[test]
@@ -308,7 +308,7 @@ mod tests {
 
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
-        assert_eq!(calculated_ta_fraction.total, 0.4);
+        assert_eq!(calculated_ta_fraction.total, 0.5);
         assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
@@ -458,7 +458,7 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction.total, 9.0);
+        assert_eq!(calculated_ta_fraction.total, 6.0);
         assert_eq!(calculated_ta_fraction.lab_amount, 0.0);
     }
 
@@ -477,7 +477,7 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction.total, 2.7);
-        assert_eq!(calculated_ta_fraction.lab_amount, 1.1);
+        assert_eq!(calculated_ta_fraction.total, 2.75);
+        assert_eq!(calculated_ta_fraction.lab_amount, 1.25);
     }
 }

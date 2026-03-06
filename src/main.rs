@@ -47,7 +47,7 @@ fn write_output(courses: Vec<(Course, CourseAllocation)>) {
             c.0.instructor,
             c.0.enrollment.to_string(),
             c.1.total.to_string(),
-            format!("{:.1}", c.1.total - c.1.lab_amount), // TODO Fix hack
+            format!("{:.2}", c.1.total - c.1.lab_amount), // TODO Fix hack
             c.1.lab_amount.to_string(),
         ])
         .unwrap();
@@ -120,7 +120,7 @@ mod tests {
         let outcome = calculate_ta_hours_for_courses(vec![course]);
 
         assert_eq!(outcome.len(), 1);
-        assert_eq!(outcome.first().unwrap().1.total, 7.8);
+        assert_eq!(outcome.first().unwrap().1.total, 7.75);
         assert_eq!(outcome.first().unwrap().1.lab_amount, 4.5);
         assert_eq!(outcome.first().unwrap().0.name, "ECE150");
         assert_eq!(outcome.first().unwrap().0.enrollment, 450);

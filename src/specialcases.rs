@@ -52,8 +52,8 @@ pub const SPECIAL_CASES: &[SpecialCase] = &[
     SpecialCase {
         course: "ECE298",
         reason: "Hands-On Lab Course",
-        allocation_rule: AllocationRule::PER_SECTION,
-        allocation_amount: 3.0,
+        allocation_rule: AllocationRule::PER_LAB_SECTION,
+        allocation_amount: 0.75,
     },
     SpecialCase {
         course: "ECE198",
