@@ -38,8 +38,8 @@ pub fn calculate_ta_hours(c: &Course) -> CourseAllocation {
     }
 
     println!(
-        "Course {} is considered type {:?} (unit weight {:.2}; lab sections: {})",
-        &c.name, course_type, c.unit_weight, c.lab_sections
+        "Course {} ({} students) is considered type {:?} (unit weight {:.2}; lab sections: {})",
+        &c.name, c.enrollment, course_type, c.unit_weight, c.lab_sections
     );
 
     let mut total_ta_hours: f32 = 0.0;
