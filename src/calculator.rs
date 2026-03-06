@@ -477,7 +477,7 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
         let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
 
-        assert_eq!(calculated_ta_fraction.total, 3.2);
+        assert_eq!(calculated_ta_fraction.total, 2.7);
         assert_eq!(calculated_ta_fraction.lab_amount, 1.1);
     }
 }

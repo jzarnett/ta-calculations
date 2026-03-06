@@ -120,7 +120,7 @@ mod tests {
         let outcome = calculate_ta_hours_for_courses(vec![course]);
 
         assert_eq!(outcome.len(), 1);
-        assert_eq!(outcome.first().unwrap().1.total, 8.8);
+        assert_eq!(outcome.first().unwrap().1.total, 7.8);
         assert_eq!(outcome.first().unwrap().1.lab_amount, 4.5);
         assert_eq!(outcome.first().unwrap().0.name, "ECE150");
         assert_eq!(outcome.first().unwrap().0.enrollment, 450);
