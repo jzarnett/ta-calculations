@@ -23,7 +23,13 @@ pub const SPECIAL_CASES: &[SpecialCase] = &[
         course: "NE340L",
         reason: "Cleanroom Lab Course",
         allocation_rule: AllocationRule::FIXED,
-        allocation_amount: 2.0,
+        allocation_amount: 2.5,
+    },
+    SpecialCase {
+        course: "NE343",
+        reason: "Lab Course",
+        allocation_rule: AllocationRule::FIXED,
+        allocation_amount: 2.5,
     },
     SpecialCase {
         course: "ECE459",
@@ -35,7 +41,7 @@ pub const SPECIAL_CASES: &[SpecialCase] = &[
         course: "NE455B",
         reason: "Cleanroom Lab Course",
         allocation_rule: AllocationRule::MIN_ALLOC,
-        allocation_amount: 2.0,
+        allocation_amount: 2.5,
     },
     SpecialCase {
         course: "NE409",
