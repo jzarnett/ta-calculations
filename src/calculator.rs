@@ -191,7 +191,10 @@ pub fn check_if_lab_only(course_name: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::calculator::{apply_rounding, calculate_ta_hours, check_for_special_case, check_if_lab_only, determine_course_type};
+    use crate::calculator::{
+        apply_rounding, calculate_ta_hours, check_for_special_case, check_if_lab_only,
+        determine_course_type,
+    };
     use crate::types::Course;
     use crate::types::CourseType::{FIRST_YEAR, GRAD, UNDERGRAD};
 
@@ -596,7 +599,7 @@ mod tests {
         let c = Course {
             name: course_name,
             instructor: "Example Instructor".to_string(),
-            enrollment: 15,  // Minimum is 15, not 10
+            enrollment: 15, // Minimum is 15, not 10
             lec_sections: 1,
             lab_sections: 0,
             unit_weight: 0.5,
@@ -762,7 +765,10 @@ mod tests {
         let calculated_ta_fraction = calculate_ta_hours(&c);
 
         // Lab-only courses should have lab_amount equal to total
-        assert_eq!(calculated_ta_fraction.lab_amount, calculated_ta_fraction.total);
+        assert_eq!(
+            calculated_ta_fraction.lab_amount,
+            calculated_ta_fraction.total
+        );
         assert!(calculated_ta_fraction.total > 0.0);
     }
 
@@ -920,7 +926,7 @@ mod tests {
         let c = Course {
             name: course_name,
             instructor: "Example Instructor".to_string(),
-            enrollment: 9,  // Below minimum
+            enrollment: 9, // Below minimum
             lec_sections: 1,
             lab_sections: 0,
             unit_weight: 0.5,
@@ -965,7 +971,7 @@ mod tests {
         let c = Course {
             name: course_name,
             instructor: "Example Instructor".to_string(),
-            enrollment: 21,  // Just above minimum
+            enrollment: 21, // Just above minimum
             lec_sections: 1,
             lab_sections: 0,
             unit_weight: 0.25,
