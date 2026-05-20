@@ -960,6 +960,250 @@ mod tests {
     }
 
     #[test]
+    fn special_case_ne409_no_ta_alloc() {
+        let course_name = String::from("NE409");
+        let c = Course {
+            name: course_name,
+            instructor: "Example Instructor".to_string(),
+            enrollment: 50,
+            lec_sections: 1,
+            lab_sections: 0,
+            unit_weight: 0.25,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+        let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction.total, 0.0);
+    }
+
+    #[test]
+    fn special_case_ece498b_no_ta_alloc() {
+        let course_name = String::from("ECE498B");
+        let c = Course {
+            name: course_name,
+            instructor: "Example Instructor".to_string(),
+            enrollment: 200,
+            lec_sections: 1,
+            lab_sections: 0,
+            unit_weight: 0.5,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+        let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction.total, 0.0);
+    }
+
+    #[test]
+    fn special_case_ece464_min_alloc_overrides_low() {
+        // ECE464 has MIN_ALLOC 1.0; with small enrollment, calculated < 1.0 so MIN kicks in.
+        let course_name = String::from("ECE464");
+        let c = Course {
+            name: course_name,
+            instructor: "Example Instructor".to_string(),
+            enrollment: 20,
+            lec_sections: 1,
+            lab_sections: 0,
+            unit_weight: 0.5,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+        let raw_total = calculated_ta_fraction.total;
+        let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
+
+        assert!(raw_total < 1.0);
+        assert_eq!(calculated_ta_fraction.total, 1.0);
+    }
+
+    #[test]
+    fn special_case_min_alloc_does_not_override_when_calc_higher() {
+        // NE455B MIN_ALLOC = 2.5; with high enrollment, calculated > 2.5 so allocation is unchanged.
+        let course_name = String::from("NE455B");
+        let c = Course {
+            name: course_name,
+            instructor: "Example Instructor".to_string(),
+            enrollment: 500,
+            lec_sections: 1,
+            lab_sections: 5,
+            unit_weight: 0.5,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+        let raw_total = calculated_ta_fraction.total;
+        let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
+
+        assert!(raw_total > 2.5);
+        assert_eq!(calculated_ta_fraction.total, raw_total);
+    }
+
+    #[test]
+    fn special_case_max_alloc_does_not_override_when_calc_lower() {
+        // ECE459 MAX_ALLOC = 6.0; with modest enrollment, calculated < 6.0 so allocation is unchanged.
+        let course_name = String::from("ECE459");
+        let c = Course {
+            name: course_name,
+            instructor: "Example Instructor".to_string(),
+            enrollment: 100,
+            lec_sections: 1,
+            lab_sections: 2,
+            unit_weight: 0.5,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+        let raw_total = calculated_ta_fraction.total;
+        let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
+
+        assert!(raw_total < 6.0);
+        assert_eq!(calculated_ta_fraction.total, raw_total);
+    }
+
+    #[test]
+    fn special_case_ece474_per_lab_section() {
+        // ECE474 PER_LAB_SECTION 0.4 -> 0.4 * lab_sections.
+        let course_name = String::from("ECE474");
+        let c = Course {
+            name: course_name,
+            instructor: "Example Instructor".to_string(),
+            enrollment: 100,
+            lec_sections: 1,
+            lab_sections: 5,
+            unit_weight: 0.5,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+        let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction.total, 2.0);
+    }
+
+    #[test]
+    fn special_case_ne216l_fixed_nano_lab() {
+        let course_name = String::from("NE216L");
+        let c = Course {
+            name: course_name,
+            instructor: "Example Instructor".to_string(),
+            enrollment: 60,
+            lec_sections: 1,
+            lab_sections: 2,
+            unit_weight: 0.5,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+        let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction.total, 1.0);
+    }
+
+    #[test]
+    fn special_case_ne217l_fixed_nano_lab() {
+        let course_name = String::from("NE217L");
+        let c = Course {
+            name: course_name,
+            instructor: "Example Instructor".to_string(),
+            enrollment: 60,
+            lec_sections: 1,
+            lab_sections: 2,
+            unit_weight: 0.5,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+        let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction.total, 1.0);
+    }
+
+    #[test]
+    fn special_case_ece6607pd_fixed_grad_pd_course() {
+        // ECE6607PD: starts at digit 6 -> GRAD; FIXED 1.0 overrides whatever was computed.
+        let course_name = String::from("ECE6607PD");
+        let c = Course {
+            name: course_name,
+            instructor: "Example Instructor".to_string(),
+            enrollment: 30,
+            lec_sections: 1,
+            lab_sections: 0,
+            unit_weight: 0.5,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+        let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction.total, 1.0);
+    }
+
+    #[test]
+    fn special_case_ece6608pd_fixed_grad_pd_course() {
+        let course_name = String::from("ECE6608PD");
+        let c = Course {
+            name: course_name,
+            instructor: "Example Instructor".to_string(),
+            enrollment: 30,
+            lec_sections: 1,
+            lab_sections: 0,
+            unit_weight: 0.5,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+        let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction.total, 1.0);
+    }
+
+    #[test]
+    fn check_if_lab_only_identifies_ne455a() {
+        // NE455A is in LAB_ONLY_COURSES but has no entry in SPECIAL_CASES.
+        assert_eq!(check_if_lab_only("NE455A"), true);
+        assert_eq!(check_if_lab_only("NE 455A"), true);
+    }
+
+    #[test]
+    fn first_year_course_low_unit_weight_no_adjustment() {
+        // 1YE adjustment only applies when unit_weight >= MIN_UNIT_WEIGHT_FOR_1YE_ADJUSTMENT (0.5).
+        // With FIRST_YEAR_EXTRA_TA_HOURS == 0.0 the adjustment is a no-op anyway, but this verifies
+        // the low-unit-weight branch produces a sane result without panicking.
+        let course_name = String::from("ECE 105");
+        let c = Course {
+            name: course_name,
+            instructor: "Example Instructor".to_string(),
+            enrollment: 100,
+            lec_sections: 1,
+            lab_sections: 0,
+            unit_weight: 0.25,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+
+        assert!(calculated_ta_fraction.total > 0.0);
+    }
+
+    #[test]
+    fn determine_course_type_with_trailing_letters() {
+        // Course names like ECE498A or ECE6607PD: first digit determines level.
+        assert_eq!(determine_course_type("ECE498A"), UNDERGRAD);
+        assert_eq!(determine_course_type("ECE6607PD"), GRAD);
+        assert_eq!(determine_course_type("ECE 199Z"), FIRST_YEAR);
+    }
+
+    #[test]
+    fn special_case_lookup_normalizes_spaces() {
+        // "ECE 498A" should match special case "ECE498A".
+        let c = Course {
+            name: String::from("ECE 498A"),
+            instructor: "Example Instructor".to_string(),
+            enrollment: 200,
+            lec_sections: 1,
+            lab_sections: 0,
+            unit_weight: 0.5,
+        };
+
+        let calculated_ta_fraction = calculate_ta_hours(&c);
+        let calculated_ta_fraction = check_for_special_case(&c, calculated_ta_fraction);
+
+        assert_eq!(calculated_ta_fraction.total, 0.0);
+    }
+
+    #[test]
     fn course_below_min_threshold_after_rounding() {
         let course_name = String::from("ECE 252");
         let c = Course {
